@@ -1,19 +1,20 @@
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
-
-  "name": "cold-base-880a",
-
-  "main": "src/worker.js",
-
-  "compatibility_date": "2025-01-01",
-
-  "workers_dev": true,
-
-  "observability": {
-    "enabled": true
-  },
-
-  "ai": {
-    "binding": "AI"
-  }
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "cold-base-880a",
+	"main": "src/worker.js",
+	"compatibility_date": "2025-01-01",
+	"workers_dev": true,
+	"observability": {
+		"enabled": true
+	},
+	"ai": {
+		"binding": "AI"
+	},
+	"kv_namespaces": [
+		{
+			"binding": "AI_MEMORY",
+			"id": "93a44fb827474378a43d981809cc5f5e",
+			"remote": true
+		}
+	]
 }
