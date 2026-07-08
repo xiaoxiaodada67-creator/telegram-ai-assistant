@@ -19,7 +19,45 @@ async function tavilySearch(query, apiKey) {
 
   return await resp.json();
 }
+async function shouldSearch(question, apiKey) {
+  const resp = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        contents: [
+          {
+            role: "user",
+            parts: [
+              {
+                text: `请判断下面的问题是否需要联网获取最新信息。
 
+如果需要联网，请只回答：
+YES
+
+如果不需要联网，请只回答：
+NO
+
+问题：
+${question}`
+              }
+            ]
+          }
+        ]
+      })
+    }
+  );
+
+  const data = await resp.json();
+
+  const result =
+    data.candidates?.[0]?.content?.parts?.[0]?.text?.trim().toUpperCase() || "NO";
+
+  return result === "YES";
+}
 export default {
   async fetch(request, env) {
     try {
