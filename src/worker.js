@@ -81,11 +81,8 @@ export default {
         return new Response("OK");
       }
 
-      // 判断是否需要联网
-      const needSearch =
-        /今天|最新|新闻|天气|价格|股价|汇率|比分|时间|日期|美元|人民币|比特币|BTC|ETH|OpenAI|Google|微软|苹果|Claude|Gemini|搜索|查询/i.test(
-          text
-        );
+      // AI 判断是否需要联网
+const needSearch = await shouldSearch(text, env.GEMINI_API_KEY);
 
       let prompt = text;
 
