@@ -1,7 +1,7 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
 
-  "name": "telegram-ai-assistant",
+  "name": "cold-base-880a",
 
   "main": "src/worker.js",
 
