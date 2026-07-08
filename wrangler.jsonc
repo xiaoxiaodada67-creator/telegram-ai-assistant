@@ -1,0 +1,19 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+
+  "name": "telegram-ai-assistant",
+
+  "main": "src/worker.js",
+
+  "compatibility_date": "2025-01-01",
+
+  "workers_dev": true,
+
+  "observability": {
+    "enabled": true
+  },
+
+  "ai": {
+    "binding": "AI"
+  }
+}
