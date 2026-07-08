@@ -1,14 +1,35 @@
+async function tavilySearch(query, apiKey) {
+  const resp = await fetch("https://api.tavily.com/search", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      api_key: apiKey,
+      query,
+      search_depth: "basic",
+      include_answer: true,
+      max_results: 5
+    })
+  });
+
+  if (!resp.ok) {
+    throw new Error("Tavily Search Failed");
+  }
+
+  return await resp.json();
+}
+
 export default {
   async fetch(request, env) {
     try {
       // 浏览器访问
       if (request.method !== "POST") {
-        return new Response("Telegram AI Assistant (Gemini Version)", {
-          status: 200,
+        return new Response("Telegram AI Assistant Online", {
+          status: 200
         });
       }
 
-      // Telegram Update
       const update = await request.json();
 
       if (!update.message) {
@@ -22,7 +43,55 @@ export default {
         return new Response("OK");
       }
 
-      // 调用 Gemini
+      // 判断是否需要联网
+      const needSearch =
+        /今天|最新|新闻|天气|价格|股价|汇率|比分|时间|日期|美元|人民币|比特币|BTC|ETH|OpenAI|Google|微软|苹果|Claude|Gemini|搜索|查询/i.test(
+          text
+        );
+
+      let prompt = text;
+
+      // 如果需要联网
+      if (needSearch) {
+        const result = await tavilySearch(text, env.TAVILY_API_KEY);
+
+        prompt = `
+你是一位专业AI助手。
+
+下面是联网搜索得到的最新信息：
+
+${result.answer || ""}
+
+搜索详情：
+
+${JSON.stringify(result.results, null, 2)}
+
+请根据以上最新信息回答用户。
+
+如果搜索结果不足，就明确说明。
+
+用户问题：
+
+${text}
+`;
+      } else {
+        prompt = `
+你是一位专业、智能、友好的 AI 助手。
+
+要求：
+
+1. 始终使用用户语言回答。
+2. 中文自然流畅。
+3. 不编造事实。
+4. 回答简洁准确。
+
+用户问题：
+
+${text}
+`;
+      }
+
+      // Gemini
       const geminiResp = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${env.GEMINI_API_KEY}`,
         {
@@ -36,19 +105,7 @@ export default {
                 role: "user",
                 parts: [
                   {
-                    text:
-`你是一位专业、智能、友好的 AI 助手。
-
-要求：
-
-1. 始终使用用户的语言回答。
-2. 中文回答自然流畅。
-3. 不要编造事实。
-4. 回答尽量简洁但完整。
-
-用户问题：
-
-${text}`
+                    text: prompt
                   }
                 ]
               }
@@ -71,7 +128,7 @@ ${text}`
         answer = geminiData.candidates[0].content.parts[0].text;
       }
 
-      // Telegram 回复
+      // 回复 Telegram
       await fetch(
         `https://api.telegram.org/bot${env.TELEGRAM_TOKEN}/sendMessage`,
         {
@@ -87,15 +144,12 @@ ${text}`
       );
 
       return new Response("OK");
-
     } catch (err) {
-
-      console.log(err);
+      console.error(err);
 
       return new Response(err.stack || err.message, {
         status: 500
       });
-
     }
   }
 };
